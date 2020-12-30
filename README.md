@@ -23,9 +23,14 @@ Practice the tutorial that is on the Reactjs website. [link to tutorial](https:/
   - [Composition vs Inheritance](#composition-vs-inheritance)
     - [Containment](#containment)
   - [Thinking in React](#thinking-in-react)
+  - [-----------](#-----------)
   - [Context](#context)
   - [Uncontrolled Components](#uncontrolled-components)
   - [Hooks](#hooks)
+    - [Using the State Hook](#using-the-state-hook)
+    - [Using the Effect Hook](#using-the-effect-hook)
+      - [Skipping Effects](#skipping-effects)
+    - [Rules of Hooks](#rules-of-hooks)
 
 ## State and Lifecycle
 
@@ -267,8 +272,126 @@ function WelcomeDialog() {
 4. Identify Where Your State Should Live
 5. Add Inverse Data Flow: Callbacks
 
+## -----------
+
 ## Context
+
+- React.createContext
+
+  ```js
+  export const ThemeContext = React.createContext({
+    theme: themes.dark,
+    toggleTheme: () => {},
+  });
+  ```
+
+- Context.Provider
+
+  ```jsx
+  <MyContext.Provider value={/* some value */}>
+  ```
+
+- Class.contextType
+
+  ```js
+  class MyClass extends React.Component {
+    render() {
+      let value = this.context;
+      /* render something based on the value of MyContext */
+    }
+  }
+  MyClass.contextType = MyContext;
+
+  // experimental: public class fields syntax
+  class MyClass extends React.Component {
+    static contextType = MyContext;
+    render() {
+      let value = this.context;
+      /* render something based on the value */
+    }
+  }
+  ```
+
+- Context.Consumer
+
+  ```jsx
+  <MyContext.Consumer>
+    {value => /* render something based on the context value */}
+  </MyContext.Consumer>
+  ```
 
 ## Uncontrolled Components
 
+use a ref to get form values from the DOM.
+
+```jsx
+class FileInput extends React.Component {
+  constructor(props) {
+    super(props);
+    this.handleSubmit = this.handleSubmit.bind(this);
+    this.fileInput = React.createRef();
+  }
+
+  handleSubmit(event) {
+    event.preventDefault();
+    alert(`Selected file - ${this.fileInput.current.files[0].name}`);
+  }
+
+  render() {
+    return (
+      <form onSubmit={this.handleSubmit}>
+        <input type="file" ref={this.fileInput} />
+        <button type="submit">Submit</button>
+      </form>
+    );
+  }
+}
+```
+
 ## Hooks
+
+### Using the State Hook
+
+```jsx
+import React, { useState } from "react";
+
+function Example() {
+  const [count, setCount] = useState(0);
+
+  return <button onClick={() => setCount(count + 1)}></button>;
+}
+```
+
+### Using the Effect Hook
+
+Unlike componentDidMount or componentDidUpdate, effects scheduled with useEffect don't block the browser from updating the screen. In the uncommon cases where need to happen synchronously(such as measuring the layout), there is a separate **useLayoutEffect** Hook with an API identical to useEffect.
+
+```js
+useEffect(() => {
+  // DidMount and DidUpdate
+  function handleStatusChange(status) {
+    setIsOnline(status.isOnline);
+  }
+
+  ChatAPI.subscribeToFriendStatus(props.friend.id, handleStatusChange);
+  // Specify how to clean up after this effect
+  return () => {
+    ChatAPI.unsubscribeFromFriendStatus(props.friend.id, handleStatusChange);
+  };
+});
+```
+
+#### Skipping Effects
+
+If we want to run an effect and clean it up only once (on mount and unmount), we can pass an empty array ([]) as a second argument.
+
+```js
+useEffect(() => {
+  document.title = `You clicked ${count} times`;
+}, [count]); // Only re-run the effect if count changes (!==)
+```
+
+### Rules of Hooks
+
+- Only call Hooks **at the top level**. Don't call Hooks inside loops, conditions, or nested function.
+- Only call Hooks **from React function components**. Don't call Hooks from regular JavaScript functinos. (except for custom Hooks.)
