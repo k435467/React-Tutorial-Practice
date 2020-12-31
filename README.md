@@ -25,6 +25,7 @@ Practice the tutorial that is on the Reactjs website. [link to tutorial](https:/
   - [Thinking in React](#thinking-in-react)
   - [-----------](#-----------)
   - [Context](#context)
+  - [Fragments](#fragments)
   - [Uncontrolled Components](#uncontrolled-components)
   - [Hooks](#hooks)
     - [Using the State Hook](#using-the-state-hook)
@@ -319,6 +320,38 @@ function WelcomeDialog() {
     {value => /* render something based on the context value */}
   </MyContext.Consumer>
   ```
+
+## Fragments
+
+Group a list of children without adding extra nodes to the DOM.
+
+```jsx
+class Columns extends React.Component {
+  render() {
+    return (
+      <>
+        <td>Hello</td>
+        <td>World</td>
+      </>
+    );
+  }
+}
+
+// Keyed Fragments
+function Glossary(props) {
+  return (
+    <dl>
+      {props.items.map((item) => (
+        // Without the `key`, React will fire a key warning
+        <React.Fragment key={item.id}>
+          <dt>{item.term}</dt>
+          <dd>{item.description}</dd>
+        </React.Fragment>
+      ))}
+    </dl>
+  );
+}
+```
 
 ## Uncontrolled Components
 
