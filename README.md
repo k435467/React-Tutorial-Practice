@@ -24,6 +24,9 @@ Practice the tutorial that is on the Reactjs website. [link to tutorial](https:/
     - [Containment](#containment)
   - [Thinking in React](#thinking-in-react)
   - [-----------](#-----------)
+  - [Accessibility](#accessibility)
+    - [Programmatically managing focus](#programmatically-managing-focus)
+    - [Mouse and pointer events](#mouse-and-pointer-events)
   - [Context](#context)
   - [Fragments](#fragments)
   - [Uncontrolled Components](#uncontrolled-components)
@@ -194,7 +197,7 @@ function Mailbox(props) {
 
 ### Preventing Component from Rendering
 
-Returning null instead of its render output. Note that the component's lifecycle mehtods will still be called.
+Returning null. The lifecycle mehtods will still be called.
 
 ## List and Keys
 
@@ -245,7 +248,8 @@ class Reservation extends React.Component {
 
 ### Containment
 
-Use the children prop to pass children elements directly into their output. Or pass React elements as props like any other data, because they are just objects.
+1. the children prop
+2. pass React elements as prop
 
 ```js
 function FancyBorder(props) {
@@ -274,6 +278,93 @@ function WelcomeDialog() {
 5. Add Inverse Data Flow: Callbacks
 
 ## -----------
+
+## Accessibility
+
+### Programmatically managing focus
+
+Modify the HTML DOM may cause to keyboard focus being lost or set to an unexpected element.
+
+```jsx
+class CustomTextInput extends React.Component {
+  constructor(props) {
+    super(props);
+    // Create a ref to store the textInput DOM element
+    this.textInput = React.createRef();
+  }
+
+  focus() {
+    // Explicitly focus the text input using the raw DOM API
+    // Note: we're accessing "current" to get the DOM node
+    this.textInput.current.focus();
+  }
+
+  render() {
+    // Use the `ref` callback to store a reference to the text input DOM
+    // element in an instance field (for example, this.textInput).
+    return <input type="text" ref={this.textInput} />;
+  }
+}
+```
+
+Sometimes a parent component needs to set focus to an element in a child component. We can do this by exposing DOM refs through prop.
+
+### Mouse and pointer events
+
+Attaching a click event to the window object that closes the popover.
+
+```jsx
+lass OuterClickExample extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = { isOpen: false };
+    this.toggleContainer = React.createRef();
+
+    this.onClickHandler = this.onClickHandler.bind(this);
+    this.onClickOutsideHandler = this.onClickOutsideHandler.bind(this);
+  }
+
+  // NOTE:
+  componentDidMount() {
+    window.addEventListener('click', this.onClickOutsideHandler);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('click', this.onClickOutsideHandler);
+  }
+
+  onClickHandler() {
+    this.setState(currentState => ({
+      isOpen: !currentState.isOpen
+    }));
+  }
+
+  // NOTE:
+  onClickOutsideHandler(event) {
+    if (this.state.isOpen && !this.toggleContainer.current.contains(event.target)) {
+      this.setState({ isOpen: false });
+    }
+  }
+
+  render() {
+    return (
+      <div ref={this.toggleContainer}>
+        <button onClick={this.onClickHandler}>Select an option</button>
+        {this.state.isOpen && (
+          <ul>
+            <li>Option 1</li>
+            <li>Option 2</li>
+            <li>Option 3</li>
+          </ul>
+        )}
+      </div>
+    );
+  }
+}
+```
+
+More: onBlur and onFocus.
 
 ## Context
 
@@ -397,7 +488,7 @@ function Example() {
 
 ### Using the Effect Hook
 
-Unlike componentDidMount or componentDidUpdate, effects scheduled with useEffect don't block the browser from updating the screen. In the uncommon cases where need to happen synchronously(such as measuring the layout), there is a separate **useLayoutEffect** Hook with an API identical to useEffect.
+The componentDidMount and componentDidUpdate would block the browser from updating the screen. useEffect did not. **useLayoutEffect** did.
 
 ```js
 useEffect(() => {
@@ -407,7 +498,7 @@ useEffect(() => {
   }
 
   ChatAPI.subscribeToFriendStatus(props.friend.id, handleStatusChange);
-  // Specify how to clean up after this effect
+  // WillUnmount
   return () => {
     ChatAPI.unsubscribeFromFriendStatus(props.friend.id, handleStatusChange);
   };
@@ -416,7 +507,7 @@ useEffect(() => {
 
 #### Skipping Effects
 
-If we want to run an effect and clean it up only once (on mount and unmount), we can pass an empty array ([]) as a second argument.
+Passing an empty array([]) will make effect run and clean it up only once.
 
 ```js
 useEffect(() => {
