@@ -35,6 +35,7 @@ Practice the tutorial that is on the Reactjs website. [link to tutorial](https:/
     - [Using the Effect Hook](#using-the-effect-hook)
       - [Skipping Effects](#skipping-effects)
     - [Rules of Hooks](#rules-of-hooks)
+    - [useCallback()](#useCallback())
 
 ## State and Lifecycle
 
