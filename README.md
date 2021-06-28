@@ -314,7 +314,7 @@ Sometimes a parent component needs to set focus to an element in a child compone
 Attaching a click event to the window object that closes the popover.
 
 ```jsx
-lass OuterClickExample extends React.Component {
+class OuterClickExample extends React.Component {
   constructor(props) {
     super(props);
 
@@ -519,3 +519,13 @@ useEffect(() => {
 
 - Only call Hooks **at the top level**. Don't call Hooks inside loops, conditions, or nested function.
 - Only call Hooks **from React function components**. Don't call Hooks from regular JavaScript functinos. (except for custom Hooks.)
+
+### useCallback()
+
+```jsx
+// Will not change unless `a` or `b` changes
+const memoizedCallback = useCallback(() => {
+  doSomething(a, b);
+}, [a, b]);
+```
+Pass an inline callback and an array of dependencies. useCallback will return a memoized version of the callback that only changes if one of the dependencies has changed. This is useful when passing callbacks to optimized child components that rely on reference equality to prevent unnecessary renders.
