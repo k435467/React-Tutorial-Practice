@@ -35,7 +35,10 @@ Practice the tutorial that is on the Reactjs website. [link to tutorial](https:/
     - [Using the Effect Hook](#using-the-effect-hook)
       - [Skipping Effects](#skipping-effects)
     - [Rules of Hooks](#rules-of-hooks)
-    - [useCallback](#usecallback)
+  - [Optimizing Performance](#optimizing-performance)
+    - [PureComponent: memo()](#purecomponent-memo)
+    - [useMemo()](#usememo)
+    - [useCallback()](#usecallback)
 
 ## State and Lifecycle
 
@@ -328,16 +331,16 @@ class OuterClickExample extends React.Component {
 
   // NOTE:
   componentDidMount() {
-    window.addEventListener('click', this.onClickOutsideHandler);
+    window.addEventListener("click", this.onClickOutsideHandler);
   }
 
   componentWillUnmount() {
-    window.removeEventListener('click', this.onClickOutsideHandler);
+    window.removeEventListener("click", this.onClickOutsideHandler);
   }
 
   onClickHandler() {
-    this.setState(currentState => ({
-      isOpen: !currentState.isOpen
+    this.setState((currentState) => ({
+      isOpen: !currentState.isOpen,
     }));
   }
 
@@ -521,7 +524,75 @@ useEffect(() => {
 - Only call Hooks **at the top level**. Don't call Hooks inside loops, conditions, or nested function.
 - Only call Hooks **from React function components**. Don't call Hooks from regular JavaScript functinos. (except for custom Hooks.)
 
+## Optimizing Performance
+
+- memo(): component
+- useMemo(): object
+- useCallback(): function
+
+### PureComponent: memo()
+
+If a **component** renders the same result given the same **props**, then wrap it with memo() to skip rendering. Only checks for prop changes. It will still rerender when state or context change.
+
+```jsx
+// React.memo()
+const Title = React.memo((props) => {
+  console.log("Render title component");
+  return (
+    <div>
+      <h1>Counter</h1>
+      <h5>{props.n}</h5>
+    </div>
+  );
+});
+```
+
+Second argument areEqual(prevProps, nextProps).
+
+```jsx
+const Title = React.memo(
+  () => {
+    /* ... */
+  },
+  // second argument areEqual(prevProps, nextProps)
+  (prevProps, nextProps) => {
+    console.log(prevProps, nextProps);
+    return false; // false for render
+  }
+);
+```
+
+### useMemo()
+
+Wrap **object** with useMemo() to prevent reders caused by a new object reference.
+
+```jsx
+const Counter = () => {
+  const [count, setCount] = useState(0);
+  // useMemo()
+  const titleContent = useMemo(() => ({ name: "counter" }), []);
+
+  return (
+    <div>
+      <!-- pass object to Title -->
+      <Title title={titleContent} />
+      <span>{`current count：${count}`}</span>
+      <button
+        type="button"
+        onClick={() => {
+          setCount(count + 1);
+        }}
+      >
+        Increment
+      </button>
+    </div>
+  );
+};
+```
+
 ### useCallback()
+
+Wrap **function** with useCallback() to prevent reders caused by a new function reference.
 
 ```jsx
 // Will not change unless `a` or `b` changes
@@ -529,4 +600,36 @@ const memoizedCallback = useCallback(() => {
   doSomething(a, b);
 }, [a, b]);
 ```
-Pass an inline callback and an array of dependencies. useCallback will return a memoized version of the callback that only changes if one of the dependencies has changed. This is useful when passing callbacks to optimized child components that rely on reference equality to prevent unnecessary renders.
+
+The code below would not work. Because the count is initialized to 0, it always returns 1.
+
+```jsx
+// Wrong
+
+const Counter = () => {
+  const [count, setCount] = useState(0);
+  const titleContent = useMemo(() => ({ name: "計數器" }), []);
+  // useCallback()
+  const addCount = useCallback(() => {
+    setCount(count + 1);
+  }, []);
+
+  return (
+    <div>
+      <Title title={titleContent} />
+      <span>{`目前計數：${count}`}</span>
+      <AddCountButton addCount={addCount} />
+    </div>
+  );
+};
+```
+
+Correct: setCount receives the current count as an param.
+
+```jsx
+// Correct
+
+const addCount = useCallback(() => {
+  setCount((count) => count + 1);
+}, []);
+```
