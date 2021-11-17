@@ -30,9 +30,10 @@ Practice the tutorial that is on the Reactjs website. [link to tutorial](https:/
   - [Context](#context)
   - [Fragments](#fragments)
   - [Uncontrolled Components](#uncontrolled-components)
+  - [------------](#------------)
   - [Hooks](#hooks)
-    - [Using the State Hook](#using-the-state-hook)
-    - [Using the Effect Hook](#using-the-effect-hook)
+    - [State Hook](#state-hook)
+    - [Effect Hook](#effect-hook)
       - [Skipping Effects](#skipping-effects)
     - [Rules of Hooks](#rules-of-hooks)
   - [Optimizing Performance](#optimizing-performance)
@@ -476,9 +477,11 @@ class FileInput extends React.Component {
 }
 ```
 
+## ------------
+
 ## Hooks
 
-### Using the State Hook
+### State Hook
 
 ```jsx
 import React, { useState } from "react";
@@ -490,7 +493,24 @@ function Example() {
 }
 ```
 
-### Using the Effect Hook
+Functional updates: the state is guaranteed to be up-to-date.
+
+```jsx
+function Counter({initialCount}) {
+  const [count, setCount] = useState(initialCount);
+  return (
+    <>
+      Count: {count}
+      <button onClick={() => setCount(initialCount)}>Reset</button>
+      <!-- Functional updates -->
+      <button onClick={() => setCount(prevCount => prevCount - 1)}>-</button>
+      <button onClick={() => setCount(prevCount => prevCount + 1)}>+</button>
+    </>
+  );
+}
+```
+
+### Effect Hook
 
 The componentDidMount and componentDidUpdate would block the browser from updating the screen. useEffect did not. **useLayoutEffect** did.
 
