@@ -36,6 +36,7 @@ Practice the tutorial that is on the Reactjs website. [link to tutorial](https:/
     - [Effect Hook](#effect-hook)
       - [Skipping Effects](#skipping-effects)
     - [Rules of Hooks](#rules-of-hooks)
+    - [Fetch Data](#fetch-data)
   - [Optimizing Performance](#optimizing-performance)
     - [PureComponent: memo()](#purecomponent-memo)
     - [useMemo()](#usememo)
@@ -543,6 +544,135 @@ useEffect(() => {
 
 - Only call Hooks **at the top level**. Don't call Hooks inside loops, conditions, or nested function.
 - Only call Hooks **from React function components**. Don't call Hooks from regular JavaScript functinos. (except for custom Hooks.)
+
+### Fetch Data
+
+[Article](https://www.robinwieruch.de/react-hooks-fetch-data/).
+
+- A async function returns an implicit promise. However, and effect hook should return nothing or a clean up function. Use **nested function definitions** and then call the sub functions to workaround it.
+- Use the **second argument of useEffect** to trigger fetching when event fires such as input.
+
+Custom data fetching hook:
+
+```js
+import React, { Fragment, useState, useEffect } from 'react';
+import axios from 'axios';
+
+const useDataApi = (initialUrl, initialData) => {
+  const [data, setData] = useState(initialData);
+  const [url, setUrl] = useState(initialUrl);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isError, setIsError] = useState(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsError(false);
+      setIsLoading(true);
+
+      try {
+        const result = await axios(url);
+
+        setData(result.data);
+      } catch (error) {
+        setIsError(true);
+      }
+
+      setIsLoading(false);
+    };
+
+    fetchData();
+  }, [url]);
+
+  return [{ data, isLoading, isError }, setUrl];
+};
+
+function App() {
+  const [query, setQuery] = useState('redux');
+  const [{ data, isLoading, isError }, doFetch] = useDataApi(
+    'https://hn.algolia.com/api/v1/search?query=redux',
+    { hits: [] },
+  );
+
+  return (
+    <Fragment>
+      <form
+        onSubmit={event => {
+          doFetch(
+            `http://hn.algolia.com/api/v1/search?query=${query}`,
+          );
+
+          event.preventDefault();
+        }}
+      >
+        <input
+          type="text"
+          value={query}
+          onChange={event => setQuery(event.target.value)}
+        />
+        <button type="submit">Search</button>
+      </form>
+
+      {isError && <div>Something went wrong ...</div>}
+
+      {isLoading ? (
+        <div>Loading ...</div>
+      ) : (
+        <ul>
+          {data.hits.map(item => (
+            <li key={item.objectID}>
+              <a href={item.url}>{item.title}</a>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Fragment>
+  );
+}
+
+export default App;
+```
+
+Reducer hook for data fetching and abort data fetching in effect hook:
+
+```js
+const useDataApi = (initialUrl, initialData) => {
+  const [url, setUrl] = useState(initialUrl);
+
+  const [state, dispatch] = useReducer(dataFetchReducer, {
+    isLoading: false,
+    isError: false,
+    data: initialData,
+  });
+
+  useEffect(() => {
+    let didCancel = false;
+
+    const fetchData = async () => {
+      dispatch({ type: 'FETCH_INIT' });
+
+      try {
+        const result = await axios(url);
+
+        if (!didCancel) {
+          dispatch({ type: 'FETCH_SUCCESS', payload: result.data });
+        }
+      } catch (error) {
+        if (!didCancel) {
+          dispatch({ type: 'FETCH_FAILURE' });
+        }
+      }
+    };
+
+    fetchData();
+
+    return () => {
+      didCancel = true;
+    };
+  }, [url]);
+
+  return [state, setUrl];
+};
+```
 
 ## Optimizing Performance
 
