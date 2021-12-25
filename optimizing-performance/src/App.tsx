@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "./App.css";
 
 // ---------
@@ -76,7 +76,16 @@ const RedBox = ({ ok }: RedBoxProps) => {
   const [num, setNum] = useState<number>(0);
 
   // const name = { firstName: "foo", lastName: "bar" };
-  const name = React.useMemo(() => ({ firstName: "foo", lastName: "bar" }), []);
+  const name = useMemo(() => ({ firstName: "foo", lastName: "bar" }), []);
+
+  console.log("rendered!");
+  const done = useRef<boolean>(false);
+  useEffect(() => {
+    if (!done.current) {
+      console.log("not done!");
+      done.current = true;
+    }
+  });
 
   return (
     <div className="box red">
