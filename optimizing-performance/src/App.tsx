@@ -94,7 +94,7 @@ const RedBox = ({ ok }: RedBoxProps) => {
           setNum((v) => v + 1);
         }}
       >
-        {num} {ok}
+        {num} {ok?.toString()}
       </button>
       <GreenBox name={name} />
     </div>
@@ -108,7 +108,7 @@ const RedBox = ({ ok }: RedBoxProps) => {
 function App() {
   return (
     <div className="App">
-      <RedBox />
+      <RedBox ok />
     </div>
   );
 }
