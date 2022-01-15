@@ -34,7 +34,7 @@ Practice the tutorial that is on the Reactjs website. [link to tutorial](https:/
     - [PureComponent: memo()](#purecomponent-memo)
     - [useMemo()](#usememo)
     - [useCallback()](#usecallback)
-    - [Render Props](#render-props)
+  - [Render Props](#render-props)
   - [------------](#------------)
   - [Hooks](#hooks)
     - [State Hook](#state-hook)
@@ -598,7 +598,7 @@ const addCount = useCallback(() => {
 }, []);
 ```
 
-### Render Props
+## Render Props
 
 ```tsx
 const SomeBox = ({ children }: { children: (data: string) => JSX.Element }) => {
