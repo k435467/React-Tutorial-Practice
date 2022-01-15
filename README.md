@@ -30,6 +30,11 @@ Practice the tutorial that is on the Reactjs website. [link to tutorial](https:/
   - [Context](#context)
   - [Fragments](#fragments)
   - [Uncontrolled Components](#uncontrolled-components)
+  - [Optimizing Performance](#optimizing-performance)
+    - [PureComponent: memo()](#purecomponent-memo)
+    - [useMemo()](#usememo)
+    - [useCallback()](#usecallback)
+    - [Render Props](#render-props)
   - [------------](#------------)
   - [Hooks](#hooks)
     - [State Hook](#state-hook)
@@ -37,10 +42,6 @@ Practice the tutorial that is on the Reactjs website. [link to tutorial](https:/
       - [Skipping Effects](#skipping-effects)
     - [Rules of Hooks](#rules-of-hooks)
     - [Fetch Data](#fetch-data)
-  - [Optimizing Performance](#optimizing-performance)
-    - [PureComponent: memo()](#purecomponent-memo)
-    - [useMemo()](#usememo)
-    - [useCallback()](#usecallback)
 
 ## State and Lifecycle
 
@@ -83,7 +84,7 @@ class Clock extends React.Component {
   }
 }
 
-ReactDOM.render(<Clock />, document.getElementById("root"));
+ReactDOM.render(<Clock />, document.getElementById('root'));
 ```
 
 ### State Updates May Be Asynchronous
@@ -110,7 +111,7 @@ this.setState((state, props) => ({
 class LoggingButton extends React.Component {
   // NOTE: experimental syntax.
   handleClick = () => {
-    console.log("this is:", this);
+    console.log('this is:', this);
   };
 
   render() {
@@ -130,7 +131,7 @@ class LoggingButton extends React.Component {
   }
 
   handleClick() {
-    console.log("this is:", this);
+    console.log('this is:', this);
   }
 
   render() {
@@ -144,7 +145,7 @@ class LoggingButton extends React.Component {
 ```jsx
 class LoggingButton extends React.Component {
   handleClick() {
-    console.log("this is:", this);
+    console.log('this is:', this);
   }
 
   render() {
@@ -240,7 +241,7 @@ class Reservation extends React.Component {
   // NOTE:
   handleInputChange(event) {
     const target = event.target;
-    const value = target.type === "checkbox" ? target.checked : target.value;
+    const value = target.type === 'checkbox' ? target.checked : target.value;
     const name = target.name;
 
     this.setState({
@@ -259,7 +260,11 @@ class Reservation extends React.Component {
 
 ```js
 function FancyBorder(props) {
-  return <div className={"FancyBorder FancyBorder-" + props.color}>{props.children}</div>;
+  return (
+    <div className={'FancyBorder FancyBorder-' + props.color}>
+      {props.children}
+    </div>
+  );
 }
 
 function WelcomeDialog() {
@@ -333,11 +338,11 @@ class OuterClickExample extends React.Component {
 
   // NOTE:
   componentDidMount() {
-    window.addEventListener("click", this.onClickOutsideHandler);
+    window.addEventListener('click', this.onClickOutsideHandler);
   }
 
   componentWillUnmount() {
-    window.removeEventListener("click", this.onClickOutsideHandler);
+    window.removeEventListener('click', this.onClickOutsideHandler);
   }
 
   onClickHandler() {
@@ -348,7 +353,10 @@ class OuterClickExample extends React.Component {
 
   // NOTE:
   onClickOutsideHandler(event) {
-    if (this.state.isOpen && !this.toggleContainer.current.contains(event.target)) {
+    if (
+      this.state.isOpen &&
+      !this.toggleContainer.current.contains(event.target)
+    ) {
       this.setState({ isOpen: false });
     }
   }
@@ -373,6 +381,8 @@ class OuterClickExample extends React.Component {
 More: onBlur and onFocus.
 
 ## Context
+
+When the value of Context.Provider changes, the consumers must re-render. Object.is() is used to determine the value changes or not.
 
 - React.createContext
 
@@ -478,6 +488,141 @@ class FileInput extends React.Component {
 }
 ```
 
+## Optimizing Performance
+
+- memo(): component
+- useMemo(): object
+- useCallback(): function
+
+### PureComponent: memo()
+
+If a **component** renders the same result given the same **props**, then wrap it with memo() to skip rendering. Only checks for prop changes. It will still rerender when state or context change.
+
+```jsx
+// React.memo()
+const Title = React.memo((props) => {
+  console.log('Render title component');
+  return (
+    <div>
+      <h1>Counter</h1>
+      <h5>{props.n}</h5>
+    </div>
+  );
+});
+```
+
+Second argument areEqual(prevProps, nextProps).
+
+```jsx
+const Title = React.memo(
+  () => {
+    /* ... */
+  },
+  // second argument areEqual(prevProps, nextProps)
+  (prevProps, nextProps) => {
+    console.log(prevProps, nextProps);
+    return false; // false for render
+  }
+);
+```
+
+### useMemo()
+
+Wrap **object** with useMemo() to prevent reders caused by a new object reference.
+
+```jsx
+const Counter = () => {
+  const [count, setCount] = useState(0);
+  // useMemo()
+  const titleContent = useMemo(() => ({ name: "counter" }), []);
+
+  return (
+    <div>
+      <!-- pass object to Title -->
+      <Title title={titleContent} />
+      <span>{`current count：${count}`}</span>
+      <button
+        type="button"
+        onClick={() => {
+          setCount(count + 1);
+        }}
+      >
+        Increment
+      </button>
+    </div>
+  );
+};
+```
+
+### useCallback()
+
+Wrap **function** with useCallback() to prevent reders caused by a new function reference.
+
+```jsx
+// Will not change unless `a` or `b` changes
+const memoizedCallback = useCallback(() => {
+  doSomething(a, b);
+}, [a, b]);
+```
+
+The code below would not work. Because the count is initialized to 0, it always returns 1.
+
+```jsx
+// Wrong
+
+const Counter = () => {
+  const [count, setCount] = useState(0);
+  const titleContent = useMemo(() => ({ name: '計數器' }), []);
+  // useCallback()
+  const addCount = useCallback(() => {
+    setCount(count + 1);
+  }, []);
+
+  return (
+    <div>
+      <Title title={titleContent} />
+      <span>{`目前計數：${count}`}</span>
+      <AddCountButton addCount={addCount} />
+    </div>
+  );
+};
+```
+
+Correct: setCount receives the current count as an param.
+
+```jsx
+// Correct
+
+const addCount = useCallback(() => {
+  setCount((count) => count + 1);
+}, []);
+```
+
+### Render Props
+
+```tsx
+const SomeBox = ({ children }: { children: (data: string) => JSX.Element }) => {
+  const [data, setData] = useState<string>('12345678');
+  return <div>{children(data)}</div>;
+};
+
+const App = () => {
+  return (
+    <div>
+      <SomeBox>
+        {(data) => (
+          <>
+            <p>{data}</p>
+            <p>{data}</p>
+            <p>{data}</p>
+          </>
+        )}
+      </SomeBox>
+    </div>
+  );
+};
+```
+
 ## ------------
 
 ## Hooks
@@ -485,7 +630,7 @@ class FileInput extends React.Component {
 ### State Hook
 
 ```jsx
-import React, { useState } from "react";
+import React, { useState } from 'react';
 
 function Example() {
   const [count, setCount] = useState(0);
@@ -590,16 +735,14 @@ function App() {
   const [query, setQuery] = useState('redux');
   const [{ data, isLoading, isError }, doFetch] = useDataApi(
     'https://hn.algolia.com/api/v1/search?query=redux',
-    { hits: [] },
+    { hits: [] }
   );
 
   return (
     <Fragment>
       <form
-        onSubmit={event => {
-          doFetch(
-            `http://hn.algolia.com/api/v1/search?query=${query}`,
-          );
+        onSubmit={(event) => {
+          doFetch(`http://hn.algolia.com/api/v1/search?query=${query}`);
 
           event.preventDefault();
         }}
@@ -607,7 +750,7 @@ function App() {
         <input
           type="text"
           value={query}
-          onChange={event => setQuery(event.target.value)}
+          onChange={(event) => setQuery(event.target.value)}
         />
         <button type="submit">Search</button>
       </form>
@@ -618,7 +761,7 @@ function App() {
         <div>Loading ...</div>
       ) : (
         <ul>
-          {data.hits.map(item => (
+          {data.hits.map((item) => (
             <li key={item.objectID}>
               <a href={item.url}>{item.title}</a>
             </li>
@@ -672,114 +815,4 @@ const useDataApi = (initialUrl, initialData) => {
 
   return [state, setUrl];
 };
-```
-
-## Optimizing Performance
-
-- memo(): component
-- useMemo(): object
-- useCallback(): function
-
-### PureComponent: memo()
-
-If a **component** renders the same result given the same **props**, then wrap it with memo() to skip rendering. Only checks for prop changes. It will still rerender when state or context change.
-
-```jsx
-// React.memo()
-const Title = React.memo((props) => {
-  console.log("Render title component");
-  return (
-    <div>
-      <h1>Counter</h1>
-      <h5>{props.n}</h5>
-    </div>
-  );
-});
-```
-
-Second argument areEqual(prevProps, nextProps).
-
-```jsx
-const Title = React.memo(
-  () => {
-    /* ... */
-  },
-  // second argument areEqual(prevProps, nextProps)
-  (prevProps, nextProps) => {
-    console.log(prevProps, nextProps);
-    return false; // false for render
-  }
-);
-```
-
-### useMemo()
-
-Wrap **object** with useMemo() to prevent reders caused by a new object reference.
-
-```jsx
-const Counter = () => {
-  const [count, setCount] = useState(0);
-  // useMemo()
-  const titleContent = useMemo(() => ({ name: "counter" }), []);
-
-  return (
-    <div>
-      <!-- pass object to Title -->
-      <Title title={titleContent} />
-      <span>{`current count：${count}`}</span>
-      <button
-        type="button"
-        onClick={() => {
-          setCount(count + 1);
-        }}
-      >
-        Increment
-      </button>
-    </div>
-  );
-};
-```
-
-### useCallback()
-
-Wrap **function** with useCallback() to prevent reders caused by a new function reference.
-
-```jsx
-// Will not change unless `a` or `b` changes
-const memoizedCallback = useCallback(() => {
-  doSomething(a, b);
-}, [a, b]);
-```
-
-The code below would not work. Because the count is initialized to 0, it always returns 1.
-
-```jsx
-// Wrong
-
-const Counter = () => {
-  const [count, setCount] = useState(0);
-  const titleContent = useMemo(() => ({ name: "計數器" }), []);
-  // useCallback()
-  const addCount = useCallback(() => {
-    setCount(count + 1);
-  }, []);
-
-  return (
-    <div>
-      <Title title={titleContent} />
-      <span>{`目前計數：${count}`}</span>
-      <AddCountButton addCount={addCount} />
-    </div>
-  );
-};
-```
-
-Correct: setCount receives the current count as an param.
-
-```jsx
-// Correct
-
-const addCount = useCallback(() => {
-  setCount((count) => count + 1);
-}, []);
 ```
