@@ -42,6 +42,7 @@ Practice the tutorial that is on the Reactjs website. [link to tutorial](https:/
       - [Skipping Effects](#skipping-effects)
     - [Rules of Hooks](#rules-of-hooks)
     - [Fetch Data](#fetch-data)
+    - [Additional Hooks: useImperativeHandle](#additional-hooks-useimperativehandle)
 
 ## State and Lifecycle
 
@@ -814,5 +815,85 @@ const useDataApi = (initialUrl, initialData) => {
   }, [url]);
 
   return [state, setUrl];
+};
+```
+
+### Additional Hooks: useImperativeHandle
+
+useImperativeHandle customizes the instance value that is exposed to parent components when using ref.
+
+```tsx
+import React, {
+  forwardRef,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react';
+import './App.css';
+
+interface BlueBoxProps {
+  onClick: () => void;
+}
+
+interface BlueBoxRefObject {
+  inc: () => void;
+}
+
+const BlueBox: React.ForwardRefRenderFunction<
+  BlueBoxRefObject,
+  BlueBoxProps
+> = ({ onClick }, ref) => {
+  const [num, setNum] = useState<number>(0);
+
+  useImperativeHandle(ref, () => ({
+    inc: () => {
+      setNum((v) => v + 1);
+    },
+  }));
+
+  return (
+    <div className="box blue">
+      <button
+        onClick={() => {
+          setNum((v) => v + 1);
+        }}
+      >
+        {num}
+      </button>
+      <button onClick={onClick}>onClick</button>
+    </div>
+  );
+};
+
+const ImperativeBlueBox = forwardRef(BlueBox);
+
+// -----
+
+interface GreenBoxProps {
+  name: { firstName: string; lastName: string };
+}
+
+const GreenBox = ({ name }: GreenBoxProps) => {
+  const [num, setNum] = useState<number>(0);
+
+  const onClick = () => {
+    setNum((v) => v + 1);
+  };
+
+  const blueBoxRef = useRef<BlueBoxRefObject>(null);
+
+  return (
+    <div className="box green">
+      <button
+        onClick={() => {
+          setNum((v) => v + 1);
+        }}
+      >
+        {num} {JSON.stringify(name)}
+      </button>
+      <button onClick={blueBoxRef.current?.inc}>inc on BlueBox</button>
+      <ImperativeBlueBox ref={blueBoxRef} onClick={onClick} />
+    </div>
+  );
 };
 ```
