@@ -42,6 +42,7 @@ Practice the tutorial that is on the Reactjs website. [link to tutorial](https:/
       - [Skipping Effects](#skipping-effects)
     - [Rules of Hooks](#rules-of-hooks)
     - [Fetch Data](#fetch-data)
+    - [Additional Hooks: useRef](#additional-hooks-useref)
     - [Additional Hooks: useImperativeHandle](#additional-hooks-useimperativehandle)
 
 ## State and Lifecycle
@@ -815,6 +816,25 @@ const useDataApi = (initialUrl, initialData) => {
   }, [url]);
 
   return [state, setUrl];
+};
+```
+
+### Additional Hooks: useRef
+
+```tsx
+const MyComponent = () => {
+  /* ... */
+
+  console.log('rendered!');
+  const done = useRef<boolean>(false);
+  useEffect(() => {
+    if (!done.current) {
+      console.log('not done!');
+      done.current = true;
+    }
+  });
+
+  /* ... */
 };
 ```
 
