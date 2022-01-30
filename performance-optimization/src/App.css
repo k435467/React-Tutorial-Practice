@@ -1,0 +1,29 @@
+.container {
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.container > div {
+  margin: 5px;
+}
+
+div.box {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+  gap: 10px;
+  width: fit-content;
+}
+
+div.red {
+  background-color: rgba(255, 0, 0, 0.1);
+}
+div.green {
+  background-color: rgba(0, 255, 0, 0.2);
+}
+div.blue {
+  background-color: rgba(0, 0, 255, 0.3);
+}
