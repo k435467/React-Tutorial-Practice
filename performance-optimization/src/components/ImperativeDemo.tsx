@@ -1,8 +1,8 @@
 import React, {
-  useState,
-  useRef,
-  forwardRef,
-  useImperativeHandle,
+    useState,
+    useRef,
+    forwardRef,
+    useImperativeHandle,
 } from 'react';
 import '../App.css';
 
@@ -11,7 +11,7 @@ interface GreenBoxRefObject {
 }
 
 const ForwardRefGreenBox = forwardRef(
-  ({}, ref: React.ForwardedRef<GreenBoxRefObject>) => {
+  (_, ref: React.ForwardedRef<GreenBoxRefObject>) => {
     const [num, setNum] = useState<number>(0);
 
     useImperativeHandle(ref, () => ({
